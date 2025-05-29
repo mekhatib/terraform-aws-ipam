@@ -1,17 +1,16 @@
+variable "project_name" {
+  description = "Name of the project"
+  type        = string
+}
+
 variable "environment" {
   description = "Environment name"
   type        = string
 }
 
-variable "project_name" {
-  description = "Project name"
-  type        = string
-}
-
 variable "ipam_pool_cidr" {
-  description = "Main IPAM pool CIDR block"
+  description = "CIDR block for the main IPAM pool"
   type        = string
-  #default     = "10.0.0.0/8"
 }
 
 variable "tags" {

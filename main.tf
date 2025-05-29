@@ -62,11 +62,8 @@ resource "aws_vpc_ipam_pool" "vpc" {
 
 resource "aws_vpc_ipam_pool_cidr_allocation" "vpc_from_parent" {
   ipam_pool_id   = aws_vpc_ipam_pool.vpc.id
-  source_ipam_pool_id = aws_vpc_ipam_pool.main.id
   netmask_length = 16
-
-  depends_on = [aws_vpc_ipam_pool_cidr.main]
-
+  depends_on     = [aws_vpc_ipam_pool_cidr.main]
   lifecycle {
     create_before_destroy = true
   }

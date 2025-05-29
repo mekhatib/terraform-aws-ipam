@@ -64,7 +64,7 @@ resource "aws_vpc_ipam_pool_cidr" "vpc" {
 # Allocate specific CIDR from the child pool
 resource "aws_vpc_ipam_pool_cidr_allocation" "vpc_from_parent" {
   ipam_pool_id   = aws_vpc_ipam_pool.vpc.id
-  netmask_length = 12
+  netmask_length = 20
   depends_on     = [aws_vpc_ipam_pool_cidr.vpc]
   lifecycle {
     create_before_destroy = true

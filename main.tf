@@ -60,7 +60,7 @@ resource "aws_vpc_ipam_pool" "vpc" {
 
 # IPAM Pool CIDR for VPC - Allocate specific range
 resource "aws_vpc_ipam_pool_cidr_allocation" "vpc" {
-  ipam_pool_id   = aws_vpc_ipam_pool.main.id
+  ipam_pool_id   = aws_vpc_ipam_pool.vpc.id
   netmask_length = 16
 
   depends_on = [aws_vpc_ipam_pool_cidr.main]
@@ -69,6 +69,7 @@ resource "aws_vpc_ipam_pool_cidr_allocation" "vpc" {
     create_before_destroy = true
   }
 }
+
 
 
 # Provision the allocated CIDR to the VPC pool

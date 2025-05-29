@@ -12,3 +12,8 @@ output "vpc_pool_id" {
   description = "ID of the VPC IPAM pool"
   value       = aws_vpc_ipam_pool.vpc.id
 }
+
+output "allocated_cidr" {
+  description = "The allocated CIDR block"
+  value       = aws_vpc_ipam_pool_cidr_allocation.vpc_from_parent.cidr
+}

@@ -1,3 +1,5 @@
+data "aws_region" "current" {}
+
 # IPAM
 resource "aws_vpc_ipam" "main" {
   description = "${var.project_name} IPAM"
@@ -29,14 +31,13 @@ resource "aws_vpc_ipam_pool" "main" {
   )
 }
 
-# IPAM Pool CIDR - Parent Pool
+# Provision CIDR to Parent Pool
 resource "aws_vpc_ipam_pool_cidr" "main" {
   ipam_pool_id = aws_vpc_ipam_pool.main.id
-  cidr         = var.ipam_pool_cidr
+  cidr         = var.ipam_pool_cidr # e.g. "10.0.0.0/8"
 }
 
-# IPAM Pool - VPC Pool (Child of Main)
-# This pool will be used for BOTH VPC and subnet allocations
+# IPAM Pool - VPC Pool (Child Pool)
 resource "aws_vpc_ipam_pool" "vpc" {
   address_family      = "ipv4"
   ipam_scope_id       = aws_vpc_ipam.main.private_default_scope_id
@@ -44,7 +45,6 @@ resource "aws_vpc_ipam_pool" "vpc" {
   description         = "${var.project_name} VPC pool"
   locale              = data.aws_region.current.name
 
-  # Allow subnet allocation from this pool
   allocation_default_netmask_length = 27
   allocation_min_netmask_length     = 16
   allocation_max_netmask_length     = 28
@@ -58,8 +58,8 @@ resource "aws_vpc_ipam_pool" "vpc" {
   )
 }
 
-# IPAM Pool CIDR for VPC - Allocate specific range
-resource "aws_vpc_ipam_pool_cidr_allocation" "vpc" {
+# Allocate CIDR from Parent to Child Pool
+resource "aws_vpc_ipam_pool_cidr_allocation" "vpc_from_parent" {
   ipam_pool_id   = aws_vpc_ipam_pool.vpc.id
   netmask_length = 16
 
@@ -69,18 +69,3 @@ resource "aws_vpc_ipam_pool_cidr_allocation" "vpc" {
     create_before_destroy = true
   }
 }
-
-
-
-# Provision the allocated CIDR to the VPC pool
-resource "aws_vpc_ipam_pool_cidr" "vpc" {
-  ipam_pool_id = aws_vpc_ipam_pool.vpc.id
-  cidr         = aws_vpc_ipam_pool_cidr_allocation.vpc.cidr
-
-  depends_on = [
-    aws_vpc_ipam_pool_cidr.main,
-    aws_vpc_ipam_pool_cidr_allocation.vpc
-  ]
-}
-
-data "aws_region" "current" {}

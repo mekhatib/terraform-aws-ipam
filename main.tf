@@ -57,6 +57,7 @@ resource "aws_vpc_ipam_pool" "vpc" {
 # Provision CIDR to the Child Pool
 resource "aws_vpc_ipam_pool_cidr" "vpc" {
   ipam_pool_id = aws_vpc_ipam_pool.vpc.id
+  netmask_length = 12
   depends_on   = [aws_vpc_ipam_pool_cidr.main]
 }
 

@@ -34,7 +34,7 @@ resource "aws_vpc_ipam_pool_cidr" "main" {
   cidr         = var.ipam_pool_cidr # Example: "10.0.0.0/8"
   
   lifecycle {
-    create_before_destroy = false  # Changed this
+    create_before_destroy = false
   }
 }
 
@@ -45,9 +45,9 @@ resource "aws_vpc_ipam_pool" "vpc" {
   source_ipam_pool_id               = aws_vpc_ipam_pool.main.id
   locale                            = data.aws_region.current.name
   description                       = "${var.project_name} VPC pool"
-  allocation_default_netmask_length = 27
+  allocation_default_netmask_length = 20
   allocation_min_netmask_length     = 16
-  allocation_max_netmask_length     = 28
+  allocation_max_netmask_length     = 24
   tags = merge(
     var.tags,
     {
@@ -58,29 +58,17 @@ resource "aws_vpc_ipam_pool" "vpc" {
   depends_on = [aws_vpc_ipam_pool_cidr.main]
 }
 
-# Provision CIDR to the Child Pool
+# Provision CIDR to the Child Pool - Increased size for multiple VPCs
 resource "aws_vpc_ipam_pool_cidr" "vpc" {
   ipam_pool_id   = aws_vpc_ipam_pool.vpc.id
-  netmask_length = 12
+  netmask_length = 10  # Changed from 12 to 10 for more space
   
   depends_on = [aws_vpc_ipam_pool_cidr.main]
   
   lifecycle {
-    create_before_destroy = false  # Added this
-    # This will be destroyed after all allocations from this pool are freed
+    create_before_destroy = false
   }
 }
 
-# Allocate specific CIDR from the child pool
-resource "aws_vpc_ipam_pool_cidr_allocation" "vpc_from_parent" {
-  ipam_pool_id   = aws_vpc_ipam_pool.vpc.id
-  netmask_length = 20
-  
-  depends_on = [aws_vpc_ipam_pool_cidr.vpc]
-  
-  lifecycle {
-    create_before_destroy = false  # Changed from true to false
-  }
-}
-
-# Remove the null_resource as it's not helping with the dependency issue
+# REMOVED: aws_vpc_ipam_pool_cidr_allocation.vpc_from_parent
+# Let the VPC module handle allocation directly from the pool

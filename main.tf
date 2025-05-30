@@ -32,6 +32,10 @@ resource "aws_vpc_ipam_pool" "main" {
 resource "aws_vpc_ipam_pool_cidr" "main" {
   ipam_pool_id = aws_vpc_ipam_pool.main.id
   cidr         = var.ipam_pool_cidr # Example: "10.0.0.0/8"
+  
+  lifecycle {
+    create_before_destroy = false  # Changed this
+  }
 }
 
 # Child Pool (for VPCs or Subnets)
@@ -56,26 +60,27 @@ resource "aws_vpc_ipam_pool" "vpc" {
 
 # Provision CIDR to the Child Pool
 resource "aws_vpc_ipam_pool_cidr" "vpc" {
-  ipam_pool_id = aws_vpc_ipam_pool.vpc.id
+  ipam_pool_id   = aws_vpc_ipam_pool.vpc.id
   netmask_length = 12
-  depends_on   = [aws_vpc_ipam_pool_cidr.main]
+  
+  depends_on = [aws_vpc_ipam_pool_cidr.main]
+  
+  lifecycle {
+    create_before_destroy = false  # Added this
+    # This will be destroyed after all allocations from this pool are freed
+  }
 }
 
 # Allocate specific CIDR from the child pool
 resource "aws_vpc_ipam_pool_cidr_allocation" "vpc_from_parent" {
   ipam_pool_id   = aws_vpc_ipam_pool.vpc.id
   netmask_length = 20
-  depends_on     = [aws_vpc_ipam_pool_cidr.vpc]
+  
+  depends_on = [aws_vpc_ipam_pool_cidr.vpc]
+  
   lifecycle {
-    create_before_destroy = true
+    create_before_destroy = false  # Changed from true to false
   }
 }
 
-# Add explicit dependency to ensure VPC allocations are cleaned up first
-resource "null_resource" "cleanup_dependency" {
-  depends_on = [aws_vpc_ipam_pool_cidr_allocation.vpc_from_parent]
-  
-  lifecycle {
-    prevent_destroy = false
-  }
-}
+# Remove the null_resource as it's not helping with the dependency issue

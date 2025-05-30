@@ -70,3 +70,12 @@ resource "aws_vpc_ipam_pool_cidr_allocation" "vpc_from_parent" {
     create_before_destroy = true
   }
 }
+
+# Add explicit dependency to ensure VPC allocations are cleaned up first
+resource "null_resource" "cleanup_dependency" {
+  depends_on = [aws_vpc_ipam_pool_cidr_allocation.vpc_from_parent]
+  
+  lifecycle {
+    prevent_destroy = false
+  }
+}
